@@ -1,0 +1,176 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - role: string (required, 'admin' or 'asesor')
+    //   - asesorName: string (optional)
+    //
+    // Collection: visitas
+    // Document ID: auto-generated
+    // Fields:
+    //   - asesor: string (required, length > 0)
+    //   - fecha: timestamp (required)
+    //   - establecimiento: string (required, length > 0)
+    //   - tipoContacto: string (required, in ['Presencial', 'Online'])
+    //   - motivo: string (required)
+    //   - motivoOtro: string (optional)
+    //   - estamento: string (required)
+    //   - estamentoOtro: string (optional)
+    //   - descripcion: string (required, length <= 2000)
+    //   - acuerdosSostenedor: list (optional)
+    //   - acuerdosEquipo: list (optional)
+    //   - participantes: list (optional)
+    //   - anexos: string (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //   - updatedAt: timestamp (optional)
+    //   - authorUid: string (required, immutable)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+         (request.auth.token.email == "thegathering.cl@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorUid;
+    }
+
+    function uidUnchanged() {
+      return !('authorUid' in request.resource.data) || request.resource.data.authorUid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('authorUid' in request.resource.data) || request.resource.data.authorUid == resource.data.authorUid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidOptionalList(field, maxSize) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is list &&
+              request.resource.data[field].size() <= maxSize);
+    }
+
+    function isValidAllowedUser(data) {
+      return hasOnlyAllowedFields(['role', 'asesorName', 'createdAt']) &&
+             data.role in ['admin', 'asesor'] &&
+             isValidOptionalString('asesorName', 0, 100) &&
+             (data.createdAt is string || !('createdAt' in data));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['email', 'displayName', 'role', 'asesorName', 'isSetupComplete']) &&
+             data.email is string && data.email.size() > 0 &&
+             isValidOptionalString('displayName', 0, 100) &&
+             data.role in ['admin', 'asesor', ''] &&
+             isValidOptionalString('asesorName', 0, 100) &&
+             (data.isSetupComplete is bool || !('isSetupComplete' in data));
+    }
+
+    function isValidVisita(data) {
+      return hasOnlyAllowedFields([
+        'asesor', 'fecha', 'establecimiento', 
+        'tipoContacto', 'motivo', 'motivoOtro', 'estamento', 'estamentoOtro', 'descripcion', 
+        'acuerdosSostenedor', 'acuerdosEquipo', 'participantes', 'anexos',
+        'createdAt', 'updatedAt', 'authorUid'
+      ]) &&
+      data.asesor is string && data.asesor.size() > 0 && data.asesor.size() < 100 &&
+      data.fecha is timestamp &&
+      data.establecimiento is string && data.establecimiento.size() > 0 && data.establecimiento.size() < 150 &&
+      data.tipoContacto in ['Presencial', 'Online'] &&
+      data.motivo is string && data.motivo.size() > 0 && data.motivo.size() < 100 &&
+      isValidOptionalString('motivoOtro', 0, 200) &&
+      data.estamento is string && data.estamento.size() > 0 && data.estamento.size() < 100 &&
+      isValidOptionalString('estamentoOtro', 0, 200) &&
+      data.descripcion is string && data.descripcion.size() >= 0 && data.descripcion.size() <= 3000 &&
+      isValidOptionalList('acuerdosSostenedor', 50) &&
+      isValidOptionalList('acuerdosEquipo', 50) &&
+      isValidOptionalList('participantes', 100) &&
+      isValidOptionalString('anexos', 0, 3000) &&
+      data.createdAt is timestamp &&
+      (data.updatedAt is timestamp || !( 'updatedAt' in data)) &&
+      data.authorUid is string && data.authorUid.size() > 0;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId &&
+                    isValidUser(request.resource.data) &&
+                    (request.resource.data.role == 'asesor' || request.resource.data.role == '' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) &&
+                    (isAdmin() || request.auth.uid == userId);
+      allow delete: if isAdmin();
+    }
+
+    match /allowed_users/{email} {
+      allow read: if isAuthenticated() && (request.auth.token.email == email || isAdmin());
+      allow write: if isAdmin() && isValidAllowedUser(request.resource.data);
+    }
+
+    match /visitas/{visitaId} {
+      // Allow read if user is the author or an admin
+      allow read: if isAuthenticated() && (resource.data.authorUid == request.auth.uid || isAdmin());
+      
+      // Allow authenticated users to create a visit
+      allow create: if isAuthenticated() && 
+                    isValidVisita(request.resource.data) && 
+                    uidUnchanged();
+                    
+      // Allow author or admin to update
+      allow update: if isAuthenticated() && 
+                    (isDocOwner() || isAdmin()) &&
+                    isValidVisita(request.resource.data) && 
+                    uidNotModified() &&
+                    areImmutableFieldsUnchanged(['createdAt', 'authorUid']);
+                    
+      // Allow author or admin to delete
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+  }
+}

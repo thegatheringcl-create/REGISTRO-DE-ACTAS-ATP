@@ -1,0 +1,159 @@
+{
+  "entities": {
+    "AllowedUser": {
+      "title": "AllowedUser",
+      "description": "Usuarios pre-registrados por el administrador para darles acceso.",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["admin", "asesor"] },
+        "asesorName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["role"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Perfil de usuario del sistema.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "asesor", ""] },
+        "asesorName": { "type": "string" },
+        "isSetupComplete": { "type": "boolean" }
+      },
+      "required": ["email", "role"]
+    },
+    "Visita": {
+      "title": "Visita",
+      "description": "Registro de una visita de acompañamiento técnico a un establecimiento.",
+      "type": "object",
+      "properties": {
+        "asesor": {
+          "type": "string",
+          "description": "Nombre del asesor que realiza la visita."
+        },
+        "fecha": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha en la que se realizó la visita."
+        },
+        "establecimiento": {
+          "type": "string",
+          "description": "Nombre del establecimiento visitado."
+        },
+        "tipoContacto": {
+          "type": "string",
+          "enum": ["Presencial", "Online"],
+          "description": "Modalidad de la visita."
+        },
+        "motivo": {
+          "type": "string",
+          "description": "Motivo del acompañamiento."
+        },
+        "motivoOtro": {
+          "type": "string",
+          "description": "Descripción del motivo cuando se selecciona 'Otro'."
+        },
+        "estamento": {
+          "type": "string",
+          "description": "Estamento al que se dirige la visita."
+        },
+        "estamentoOtro": {
+          "type": "string",
+          "description": "Descripción del estamento cuando se selecciona 'Otro'."
+        },
+        "descripcion": {
+          "type": "string",
+          "description": "Breve descripción de la visita."
+        },
+        "acuerdosSostenedor": {
+          "type": "array",
+          "description": "Acuerdos, tareas y/o compromisos del sostenedor o su representante.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "descripcion": { "type": "string" },
+              "plazo": { "type": "string" },
+              "responsables": { "type": "string" },
+              "fechaRevision": { "type": "string" },
+              "estado": { "type": "string" }
+            }
+          }
+        },
+        "acuerdosEquipo": {
+          "type": "array",
+          "description": "Acuerdos, tareas y/o compromisos del Equipo Directivo, técnico u otro.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "descripcion": { "type": "string" },
+              "plazo": { "type": "string" },
+              "responsables": { "type": "string" },
+              "fechaRevision": { "type": "string" },
+              "estado": { "type": "string" }
+            }
+          }
+        },
+        "participantes": {
+          "type": "array",
+          "description": "Actores involucrados en la reunión.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "nombre": { "type": "string" },
+              "cargo": { "type": "string" }
+            }
+          }
+        },
+        "anexos": {
+          "type": "string",
+          "description": "Listado de anexos o adjuntos al acta."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha y hora de creación del registro."
+        },
+        "authorUid": {
+          "type": "string",
+          "description": "UID del usuario que creó el registro."
+        }
+      },
+      "required": [
+        "asesor",
+        "fecha",
+        "establecimiento",
+        "tipoContacto",
+        "motivo",
+        "estamento",
+        "descripcion",
+        "createdAt",
+        "authorUid"
+      ]
+    }
+  },
+  "firestore": {
+    "/allowed_users/{email}": {
+      "schema": {
+        "$ref": "#/entities/AllowedUser"
+      },
+      "description": "Lista de correos permitidos para ingresar al sistema."
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Colección de perfiles de usuario."
+    },
+    "/visitas/{visitaId}": {
+      "schema": {
+        "$ref": "#/entities/Visita"
+      },
+      "description": "Colección de registros de visitas."
+    }
+  }
+}
