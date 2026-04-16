@@ -188,13 +188,13 @@ export default function App() {
           <div className="mb-6 flex justify-center">
             <img 
               src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
-              alt="Logo Cormumel" 
-              className="h-32 w-auto object-contain"
+              alt="Logo Corporación Municipal de Melipilla" 
+              className="h-40 w-auto object-contain"
               referrerPolicy="no-referrer"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.onerror = null;
-                target.src = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_white_120dp.png"; // Fallback placeholder
+                target.src = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_white_120dp.png";
                 target.className = "h-20 w-20 bg-blue-600 rounded-xl p-4";
               }}
             />
@@ -232,8 +232,8 @@ export default function App() {
           <div className="p-6 border-b border-gray-200 flex items-center space-x-3">
             <img 
               src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
-              alt="Logo Cormumel" 
-              className="h-10 w-auto object-contain"
+              alt="Logo Corporación Municipal de Melipilla" 
+              className="h-12 w-auto object-contain"
               referrerPolicy="no-referrer"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
