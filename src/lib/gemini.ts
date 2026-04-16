@@ -18,15 +18,19 @@ export async function extractVisitFromPDF(base64Pdf: string) {
   
   const response = await genAI.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: [
-      {
-        inlineData: {
-          mimeType: "application/pdf",
-          data: base64Pdf,
+    contents: {
+      parts: [
+        {
+          inlineData: {
+            mimeType: "application/pdf",
+            data: base64Pdf,
+          }
+        },
+        {
+          text: "Extrae los detalles de la visita de este documento. Devuelve un objeto JSON que coincida con el esquema solicitado. Si algún campo no está presente en el documento, déjalo vacío o usa un valor por defecto razonable."
         }
-      },
-      "Extrae los detalles de la visita de este documento. Devuelve un objeto JSON que coincida con el esquema solicitado. Si algún campo no está presente en el documento, déjalo vacío o usa un valor por defecto razonable."
-    ],
+      ]
+    },
     config: {
       responseMimeType: "application/json",
       responseSchema: {

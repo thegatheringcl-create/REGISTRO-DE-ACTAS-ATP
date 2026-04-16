@@ -22,6 +22,16 @@ export type Participante = {
   cargo: string;
 };
 
+// Safe ID generator helper
+const generateId = () => {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+  } catch (e) {}
+  return Math.random().toString(36).substring(2, 11);
+};
+
 type FormData = {
   asesor: string;
   fecha: string;
@@ -82,7 +92,7 @@ export default function NewVisitForm({ visitaToEdit, onCancelEdit }: { visitaToE
   const watchEstamento = watch('estamento');
 
   const addParticipante = () => {
-    setParticipantes([...participantes, { id: crypto.randomUUID(), nombre: '', cargo: '' }]);
+    setParticipantes([...participantes, { id: generateId(), nombre: '', cargo: '' }]);
   };
 
   const updateParticipante = (id: string, field: keyof Participante, value: string) => {
@@ -95,7 +105,7 @@ export default function NewVisitForm({ visitaToEdit, onCancelEdit }: { visitaToE
 
   const addAcuerdo = (tipo: 'sostenedor' | 'equipo') => {
     const newAcuerdo: Acuerdo = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       descripcion: '',
       plazo: '',
       responsables: '',
@@ -156,15 +166,15 @@ export default function NewVisitForm({ visitaToEdit, onCancelEdit }: { visitaToE
           if (extractedData.descripcion) setValue('descripcion', extractedData.descripcion);
           if (extractedData.anexos) setValue('anexos', extractedData.anexos);
 
-          // Populate arrays
-          if (extractedData.participantes) {
-            setParticipantes(extractedData.participantes.map((p: any) => ({ ...p, id: crypto.randomUUID() })));
+          // Populate arrays with safety guards
+          if (Array.isArray(extractedData.participantes)) {
+            setParticipantes(extractedData.participantes.map((p: any) => ({ ...p, id: generateId() })));
           }
-          if (extractedData.acuerdosSostenedor) {
-            setAcuerdosSostenedor(extractedData.acuerdosSostenedor.map((a: any) => ({ ...a, id: crypto.randomUUID(), estado: 'Registrado' })));
+          if (Array.isArray(extractedData.acuerdosSostenedor)) {
+            setAcuerdosSostenedor(extractedData.acuerdosSostenedor.map((a: any) => ({ ...a, id: generateId(), estado: 'Registrado' })));
           }
-          if (extractedData.acuerdosEquipo) {
-            setAcuerdosEquipo(extractedData.acuerdosEquipo.map((a: any) => ({ ...a, id: crypto.randomUUID(), estado: 'Registrado' })));
+          if (Array.isArray(extractedData.acuerdosEquipo)) {
+            setAcuerdosEquipo(extractedData.acuerdosEquipo.map((a: any) => ({ ...a, id: generateId(), estado: 'Registrado' })));
           }
 
           setSuccessMessage('Información extraída exitosamente. Por favor, revisa y completa los datos antes de guardar.');
