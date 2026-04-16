@@ -4,9 +4,11 @@ let ai: GoogleGenAI | null = null;
 
 export function getGeminiAI() {
   if (!ai) {
-    const key = process.env.GEMINI_API_KEY;
+    const key = typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined;
     if (!key) {
-      throw new Error("GEMINI_API_KEY environment variable is required");
+      const isDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('google.com');
+      const environmentName = isDev ? "el entorno" : "Vercel";
+      throw new Error(`GEMINI_API_KEY no configurada. Asegúrate de añadir esta variable de entorno en los ajustes de ${environmentName}.`);
     }
     ai = new GoogleGenAI({ apiKey: key });
   }
@@ -27,7 +29,7 @@ export async function extractVisitFromPDF(base64Pdf: string) {
           }
         },
         {
-          text: "Extrae los detalles de la visita de este documento. Devuelve un objeto JSON que coincida con el esquema solicitado. Si algún campo no está presente en el documento, déjalo vacío o usa un valor por defecto razonable."
+          text: "Extrae los detalles de la visita de este documento. El documento puede contener escritura a mano; por favor, haz tu mejor esfuerzo por transcribirla con la mayor precisión posible. Devuelve un objeto JSON que coincida con el esquema solicitado. Si algún campo no está presente en el documento, déjalo vacío o usa un valor por defecto razonable."
         }
       ]
     },

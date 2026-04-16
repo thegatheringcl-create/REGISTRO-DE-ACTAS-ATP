@@ -83,7 +83,7 @@ export default function NewVisitForm({ visitaToEdit, onCancelEdit }: { visitaToE
       setAcuerdosSostenedor(visitaToEdit.acuerdosSostenedor || []);
       setAcuerdosEquipo(visitaToEdit.acuerdosEquipo || []);
       setParticipantes(visitaToEdit.participantes || []);
-    } else if (userProfile?.role === 'asesor' && userProfile.asesorName) {
+    } else if (userProfile?.asesorName) {
       setValue('asesor', userProfile.asesorName);
     }
   }, [visitaToEdit, userProfile, setValue]);
