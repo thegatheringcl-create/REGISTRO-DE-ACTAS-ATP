@@ -96,6 +96,7 @@ export default function App() {
   const [visitaToEdit, setVisitaToEdit] = useState<any>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -255,18 +256,19 @@ export default function App() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-md text-center">
           <div className="mb-6 flex justify-center">
-            <img 
-              src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
-              alt="Logo Corporación Municipal de Melipilla" 
-              className="h-40 w-auto object-contain"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.onerror = null;
-                target.src = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_white_120dp.png";
-                target.className = "h-20 w-20 bg-blue-600 rounded-xl p-4";
-              }}
-            />
+            {logoError ? (
+              <div className="h-20 w-20 bg-blue-600 rounded-xl p-4 flex items-center justify-center">
+                <LayoutDashboard className="w-10 h-10 text-white" />
+              </div>
+            ) : (
+              <img 
+                src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
+                alt="Logo Corporación Municipal de Melipilla" 
+                className="h-40 w-auto object-contain"
+                referrerPolicy="no-referrer"
+                onError={() => setLogoError(true)}
+              />
+            )}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Corporación Municipal de Melipilla</h1>
           <h2 className="text-lg font-medium text-gray-600 mb-6">Sistema de Acompañamiento Técnico</h2>
@@ -296,22 +298,23 @@ export default function App() {
   return (
     <ErrorBoundary>
       <UserContext.Provider value={{ userProfile }}>
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50 flex" translate="no">
         {/* Sidebar */}
         <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
           <div className="p-6 border-b border-gray-200 flex items-center space-x-3">
-            <img 
-              src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
-              alt="Logo Corporación Municipal de Melipilla" 
-              className="h-12 w-auto object-contain"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.onerror = null;
-                target.src = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_white_120dp.png";
-                target.className = "h-8 w-8 bg-blue-600 rounded-lg p-1";
-              }}
-            />
+            {logoError ? (
+              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center p-1">
+                <LayoutDashboard className="w-5 h-5 text-white" />
+              </div>
+            ) : (
+              <img 
+                src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
+                alt="Logo Corporación Municipal de Melipilla" 
+                className="h-12 w-auto object-contain"
+                referrerPolicy="no-referrer"
+                onError={() => setLogoError(true)}
+              />
+            )}
             <h1 className="text-xs font-bold text-gray-900 leading-tight">Corporación<br/>Municipal</h1>
           </div>
           
@@ -398,7 +401,7 @@ export default function App() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto flex flex-col">
-          <div className="p-8 max-w-5xl mx-auto flex-1 w-full">
+          <div className="p-8 max-w-5xl mx-auto flex-1 w-full" key={currentView}>
             {currentView === 'new' && (
               <NewVisitForm 
                 visitaToEdit={visitaToEdit} 
