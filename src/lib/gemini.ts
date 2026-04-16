@@ -88,5 +88,13 @@ export async function extractVisitFromPDF(base64Pdf: string) {
     throw new Error("No se pudo extraer información del PDF.");
   }
 
-  return JSON.parse(response.text);
+  try {
+    const text = response.text.trim();
+    // Remove markdown code blocks if present
+    const cleanJson = text.replace(/^```json\n?|```$/g, '').trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error("Error parsing Gemini response:", error);
+    throw new Error("La respuesta de la IA no es un formato válido.");
+  }
 }

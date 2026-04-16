@@ -155,30 +155,63 @@ export default function NewVisitForm({ visitaToEdit, onCancelEdit }: { visitaToE
           const base64String = (event.target?.result as string).split(',')[1];
           const extractedData = await extractVisitFromPDF(base64String);
           
-          // Populate form fields
-          if (extractedData.establecimiento) setValue('establecimiento', extractedData.establecimiento);
-          if (extractedData.fecha) setValue('fecha', extractedData.fecha);
-          if (extractedData.tipoContacto) setValue('tipoContacto', extractedData.tipoContacto);
-          if (extractedData.motivo) setValue('motivo', extractedData.motivo);
-          if (extractedData.motivoOtro) setValue('motivoOtro', extractedData.motivoOtro);
-          if (extractedData.estamento) setValue('estamento', extractedData.estamento);
-          if (extractedData.estamentoOtro) setValue('estamentoOtro', extractedData.estamentoOtro);
-          if (extractedData.descripcion) setValue('descripcion', extractedData.descripcion);
-          if (extractedData.anexos) setValue('anexos', extractedData.anexos);
+          // Populate form fields with robust check
+          if (extractedData && typeof extractedData === 'object') {
+            if (extractedData.establecimiento) setValue('establecimiento', String(extractedData.establecimiento));
+            if (extractedData.fecha) {
+              const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+              if (dateRegex.test(String(extractedData.fecha))) {
+                setValue('fecha', String(extractedData.fecha));
+              }
+            }
+            if (extractedData.tipoContacto) setValue('tipoContacto', String(extractedData.tipoContacto));
+            if (extractedData.motivo) setValue('motivo', String(extractedData.motivo));
+            if (extractedData.motivoOtro) setValue('motivoOtro', String(extractedData.motivoOtro));
+            if (extractedData.estamento) setValue('estamento', String(extractedData.estamento));
+            if (extractedData.estamentoOtro) setValue('estamentoOtro', String(extractedData.estamentoOtro));
+            if (extractedData.descripcion) setValue('descripcion', String(extractedData.descripcion));
+            if (extractedData.anexos) setValue('anexos', String(extractedData.anexos));
 
-          // Populate arrays with safety guards
-          if (Array.isArray(extractedData.participantes)) {
-            setParticipantes(extractedData.participantes.map((p: any) => ({ ...p, id: generateId() })));
-          }
-          if (Array.isArray(extractedData.acuerdosSostenedor)) {
-            setAcuerdosSostenedor(extractedData.acuerdosSostenedor.map((a: any) => ({ ...a, id: generateId(), estado: 'Registrado' })));
-          }
-          if (Array.isArray(extractedData.acuerdosEquipo)) {
-            setAcuerdosEquipo(extractedData.acuerdosEquipo.map((a: any) => ({ ...a, id: generateId(), estado: 'Registrado' })));
-          }
+            // Populate arrays with safety guards
+            if (Array.isArray(extractedData.participantes)) {
+              setParticipantes(extractedData.participantes
+                .filter((p: any) => p && typeof p === 'object')
+                .map((p: any) => ({ 
+                  id: generateId(), 
+                  nombre: String(p.nombre || ''), 
+                  cargo: String(p.cargo || '') 
+                })));
+            }
+            if (Array.isArray(extractedData.acuerdosSostenedor)) {
+              setAcuerdosSostenedor(extractedData.acuerdosSostenedor
+                .filter((a: any) => a && typeof a === 'object')
+                .map((a: any) => ({ 
+                  id: generateId(), 
+                  descripcion: String(a.descripcion || ''),
+                  plazo: String(a.plazo || ''),
+                  responsables: String(a.responsables || ''),
+                  fechaRevision: String(a.fechaRevision || ''),
+                  estado: 'Registrado' 
+                })));
+            }
+            if (Array.isArray(extractedData.acuerdosEquipo)) {
+              setAcuerdosEquipo(extractedData.acuerdosEquipo
+                .filter((a: any) => a && typeof a === 'object')
+                .map((a: any) => ({ 
+                  id: generateId(), 
+                  descripcion: String(a.descripcion || ''),
+                  plazo: String(a.plazo || ''),
+                  responsables: String(a.responsables || ''),
+                  fechaRevision: String(a.fechaRevision || ''),
+                  estado: 'Registrado' 
+                })));
+            }
 
-          setSuccessMessage('Información extraída exitosamente. Por favor, revisa y completa los datos antes de guardar.');
-          setUploadMode('manual'); // Switch back to manual mode to review
+            setSuccessMessage('Información extraída exitosamente. Por favor, revisa y completa los datos antes de guardar.');
+            setUploadMode('manual');
+          } else {
+            throw new Error("Datos extraídos no válidos");
+          }
         } catch (err) {
           console.error(err);
           setErrorMessage('Error al procesar el PDF con IA. Asegúrate de que el documento sea legible.');
