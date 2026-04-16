@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, setDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, setDoc, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { UserProfile } from '../App';
-import { Save, Check, UserPlus, Mail } from 'lucide-react';
+import { Save, Check, UserPlus, Mail, X } from 'lucide-react';
 
 export default function AdminPanel() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -114,14 +114,14 @@ export default function AdminPanel() {
     try {
       await updateDoc(doc(db, 'users', selectedUserId), {
         role: quickRole,
-        asesorName: quickRole === 'asesor' ? quickAsesor : ''
+        asesorName: quickAsesor
       });
       setQuickSaved(true);
       setTimeout(() => setQuickSaved(false), 3000);
       
       setLocalUsers(prev => ({
         ...prev,
-        [selectedUserId]: { ...prev[selectedUserId], role: quickRole as any, asesorName: quickRole === 'asesor' ? quickAsesor : '' }
+        [selectedUserId]: { ...prev[selectedUserId], role: quickRole as any, asesorName: quickAsesor }
       }));
     } catch (error) {
       console.error("Error updating user:", error);
@@ -132,14 +132,13 @@ export default function AdminPanel() {
 
   const handleRegisterUser = async () => {
     if (!newEmail || !newRole) return;
-    if (newRole === 'asesor' && !newAsesor) return;
     
     setIsRegistering(true);
     try {
       const emailKey = newEmail.toLowerCase().trim();
       await setDoc(doc(db, 'allowed_users', emailKey), {
         role: newRole,
-        asesorName: newRole === 'asesor' ? newAsesor : '',
+        asesorName: newAsesor,
         createdAt: new Date().toISOString()
       });
       setNewEmail('');
@@ -151,6 +150,16 @@ export default function AdminPanel() {
       handleFirestoreError(error, OperationType.CREATE, `allowed_users`);
     }
     setIsRegistering(false);
+  };
+
+  const handleRemoveAllowedUser = async (email: string) => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar a ${email} de la lista de acceso?`)) return;
+    try {
+      await deleteDoc(doc(db, 'allowed_users', email));
+    } catch (error) {
+      console.error("Error removing allowed user:", error);
+      handleFirestoreError(error, OperationType.DELETE, `allowed_users/${email}`);
+    }
   };
 
   if (loading) {
@@ -202,14 +211,13 @@ export default function AdminPanel() {
             </div>
 
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Asesor</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Asesor (Firma)</label>
               <input
                 type="text"
                 value={newAsesor}
                 onChange={(e) => setNewAsesor(e.target.value)}
-                disabled={newRole !== 'asesor'}
                 placeholder="Nombre completo..."
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
@@ -225,18 +233,23 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {pendingUsers.length > 0 && (
             <div className="mt-6">
               <h4 className="text-sm font-medium text-gray-700 mb-3">Usuarios registrados pendientes de ingresar por primera vez:</h4>
               <div className="flex flex-wrap gap-2">
                 {pendingUsers.map(pu => (
-                  <span key={pu.email} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {pu.email} ({pu.role})
+                  <span key={pu.email} className="inline-flex items-center pl-2.5 pr-1 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 group">
+                    {pu.email} ({pu.role}){pu.asesorName ? ` - ${pu.asesorName}` : ''}
+                    <button 
+                      onClick={() => handleRemoveAllowedUser(pu.email)}
+                      className="ml-1.5 p-0.5 rounded-full hover:bg-gray-200 text-gray-400 hover:text-red-500 transition-colors"
+                      title="Quitar acceso"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 ))}
               </div>
             </div>
-          )}
         </div>
       </div>
 
@@ -282,7 +295,7 @@ export default function AdminPanel() {
                 type="text"
                 value={quickAsesor}
                 onChange={(e) => setQuickAsesor(e.target.value)}
-                disabled={!selectedUserId || quickRole !== 'asesor'}
+                disabled={!selectedUserId}
                 placeholder="Nombre completo..."
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
               />
@@ -365,9 +378,8 @@ export default function AdminPanel() {
                       type="text"
                       value={localUser.asesorName || ''}
                       onChange={(e) => handleLocalChange(user.uid, 'asesorName', e.target.value)}
-                      disabled={localUser.role !== 'asesor'}
                       placeholder="Nombre del asesor..."
-                      className={`w-full rounded-md border ${isDirty && localUser.asesorName !== user.asesorName ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300'} px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50`}
+                      className={`w-full rounded-md border ${isDirty && localUser.asesorName !== user.asesorName ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300'} px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500`}
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
