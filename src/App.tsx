@@ -187,10 +187,16 @@ export default function App() {
         <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-md text-center">
           <div className="mb-6 flex justify-center">
             <img 
-              src="https://corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
+              src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
               alt="Logo Cormumel" 
               className="h-32 w-auto object-contain"
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_white_120dp.png"; // Fallback placeholder
+                target.className = "h-20 w-20 bg-blue-600 rounded-xl p-4";
+              }}
             />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Corporación Municipal de Melipilla</h1>
@@ -225,10 +231,16 @@ export default function App() {
         <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
           <div className="p-6 border-b border-gray-200 flex items-center space-x-3">
             <img 
-              src="https://corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
+              src="https://www.corpomelipilla.cl/wp-content/uploads/2021/03/logo-cormumel-educacion.png" 
               alt="Logo Cormumel" 
               className="h-10 w-auto object-contain"
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_white_120dp.png";
+                target.className = "h-8 w-8 bg-blue-600 rounded-lg p-1";
+              }}
             />
             <h1 className="text-xs font-bold text-gray-900 leading-tight">Corporación<br/>Municipal</h1>
           </div>

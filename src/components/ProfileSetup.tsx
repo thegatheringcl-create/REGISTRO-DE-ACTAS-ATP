@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile } from '../App';
-import { ASESORES } from '../constants';
 import { ClipboardList } from 'lucide-react';
 
 export default function ProfileSetup({ userProfile, onComplete }: { userProfile: UserProfile, onComplete: (p: UserProfile) => void }) {
@@ -59,14 +58,13 @@ export default function ProfileSetup({ userProfile, onComplete }: { userProfile:
           {role === 'asesor' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de Asesor</label>
-              <select 
+              <input 
+                type="text"
                 value={asesorName} 
                 onChange={(e) => setAsesorName(e.target.value)}
+                placeholder="Escribe tu nombre completo..."
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Seleccione su nombre...</option>
-                {ASESORES.map(a => <option key={a} value={a}>{a}</option>)}
-              </select>
+              />
             </div>
           )}
         </div>

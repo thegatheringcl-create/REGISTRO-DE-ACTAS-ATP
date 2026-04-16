@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
-import { ASESORES, ESTABLECIMIENTOS, TIPOS_CONTACTO, MOTIVOS, ESTAMENTOS, ESTADOS_ACUERDO } from '../constants';
+import { ESTABLECIMIENTOS, TIPOS_CONTACTO, MOTIVOS, ESTAMENTOS, ESTADOS_ACUERDO } from '../constants';
 import { Plus, Trash2, Upload, FileText, Loader2, X } from 'lucide-react';
 import { UserContext } from '../App';
 import { extractVisitFromPDF } from '../lib/gemini';
@@ -433,23 +433,15 @@ export default function NewVisitForm({ visitaToEdit, onCancelEdit }: { visitaToE
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Asesor */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Asesor</label>
-            {userProfile?.role === 'asesor' && userProfile.asesorName ? (
-              <div className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-700">
-                {userProfile.asesorName}
-                <input type="hidden" {...register('asesor')} value={userProfile.asesorName} />
-              </div>
-            ) : (
-              <select 
-                {...register('asesor', { required: 'Este campo es requerido' })}
-                className={`w-full rounded-md border ${errors.asesor ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent`}
-              >
-                <option value="">Seleccione un asesor...</option>
-                {ASESORES.map(a => <option key={a} value={a}>{a}</option>)}
-              </select>
-            )}
+            <input 
+              type="text"
+              {...register('asesor', { required: 'Este campo es requerido' })}
+              placeholder="Nombre del asesor..."
+              readOnly={userProfile?.role === 'asesor' && !!userProfile.asesorName}
+              className={`w-full rounded-md border ${errors.asesor ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${userProfile?.role === 'asesor' && userProfile.asesorName ? 'bg-gray-50 text-gray-700' : ''}`}
+            />
             {errors.asesor && <p className="mt-1 text-xs text-red-600">{errors.asesor.message}</p>}
           </div>
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, query, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { ASESORES } from '../constants';
 import { UserProfile } from '../App';
 import { Save, Check, UserPlus, Mail } from 'lucide-react';
 
@@ -203,18 +202,15 @@ export default function AdminPanel() {
             </div>
 
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Asesor Asignado</label>
-              <select
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Asesor</label>
+              <input
+                type="text"
                 value={newAsesor}
                 onChange={(e) => setNewAsesor(e.target.value)}
                 disabled={newRole !== 'asesor'}
+                placeholder="Nombre completo..."
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-              >
-                <option value="">-- No asignado --</option>
-                {ASESORES.map(asesor => (
-                  <option key={asesor} value={asesor}>{asesor}</option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="md:col-span-1">
@@ -281,18 +277,15 @@ export default function AdminPanel() {
             </div>
 
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">3. Asignar Asesor</label>
-              <select
+              <label className="block text-sm font-medium text-gray-700 mb-1">3. Nombre del Asesor</label>
+              <input
+                type="text"
                 value={quickAsesor}
                 onChange={(e) => setQuickAsesor(e.target.value)}
                 disabled={!selectedUserId || quickRole !== 'asesor'}
+                placeholder="Nombre completo..."
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-              >
-                <option value="">-- No asignado --</option>
-                {ASESORES.map(asesor => (
-                  <option key={asesor} value={asesor}>{asesor}</option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="md:col-span-1">
@@ -368,16 +361,14 @@ export default function AdminPanel() {
                     </select>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <select
+                    <input
+                      type="text"
                       value={localUser.asesorName || ''}
                       onChange={(e) => handleLocalChange(user.uid, 'asesorName', e.target.value)}
-                      className={`w-full rounded-md border ${isDirty && localUser.asesorName !== user.asesorName ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300'} px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500`}
-                    >
-                      <option value="">-- No asignado --</option>
-                      {ASESORES.map(asesor => (
-                        <option key={asesor} value={asesor}>{asesor}</option>
-                      ))}
-                    </select>
+                      disabled={localUser.role !== 'asesor'}
+                      placeholder="Nombre del asesor..."
+                      className={`w-full rounded-md border ${isDirty && localUser.asesorName !== user.asesorName ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300'} px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50`}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
